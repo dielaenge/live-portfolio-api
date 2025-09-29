@@ -1,0 +1,34 @@
+name: Deploy Backend to AWS
+
+# when action is triggered
+on:
+    push:
+        branches: ["main"]
+
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        permissions: 
+            id-token: write
+            contents: read
+        
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+            
+            - name: Setup SAM CLI
+              uses: aws-actions/setup-sam@v2
+
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                role-to-assume: arn:aws:iam::565393028520:role/GitHubActions-PortfolioBackend-DeployRole
+                aws-region: eu-central-1
+
+            - name: Build SAM application
+              run: sam build
+
+            - name: Deploy SAM application
+              run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset
+        
