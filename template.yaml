@@ -27,7 +27,7 @@ Resources: # In SAM, Resources: can define SAM and CloudFormation resources; mor
     Properties:
       CodeUri: src/get_projects/
       Handler: app.lambda_handler
-      Runtime: python3.13
+      Runtime: python3.12
       Architectures:
       - arm64
       Policies:
