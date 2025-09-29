@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31 # Transform::Serverless-2016-10-31 declaration is SAM requirement; identifies CloudFormation template file as SAM template file
+Description: > # optional
+  live-portfolio-api
+
+  Sample SAM Template for live-portfolio-api
+
+Globals: # Globals section unique to SAM; defines properties common to all serverless functions and APIs, (AWS::Serverless::Function; AWS::Serverless::Api, AWS::Serverless::SimpleTable, AWS::Serverless::HttpApi, AWS::Serverless::StateMachine); more about Globals in SAM https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html
+  Function:
+    Timeout: 3 # 3 seconds 
+
+    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
+    # LoggingConfig:
+      # LogFormat: JSON
+
+Resources: # In SAM, Resources: can define SAM and CloudFormation resources; more about SAM-supported resources and properties: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy-globals.html#sam-specification-template-anatomy-globals-supported-resources-and-properties
+
+  PortfolioApi: 
+      Type: AWS::Serverless::Api # configures authorization; more info under https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-api-apiauth.html
+      Properties:
+        StageName: Prod
+        Auth:
+          DefaultAuthorizer: NONE
+
+  GetProjectsFunction:
+    Type: AWS::Serverless::Function # creates Lambda function, IAM execution role and event source mappings; more info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/get_projects/
+      Handler: app.lambda_handler
+      Runtime: python3.13
+      Architectures:
+      - arm64
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:Scan
+              Resource: !GetAtt PortfolioDataTable.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref PortfolioDataTable
+      Events:
+        GetProjectsAPI:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /projects
+            Method: get
+
+  PortfolioDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: portfolio-data
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+        - AttributeName: SK
+          AttributeType: S
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH #Partition Key
+        - AttributeName: SK
+          KeyType: RANGE #Sort Key          
+      BillingMode: PAY_PER_REQUEST
+      SSESpecification:
+        SSEEnabled: true
+
+Outputs:
+  ProjectsApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetProjectsFunction"
+    Value: !Sub "https://${PortfolioApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/projects"
+  GetProjectsFunctionArn:
+    Description: "Get Projects Lambda Function ARN"
+    Value: !GetAtt GetProjectsFunction.Arn
+  GetProjectsFunctionIamRoleArn:
+    Description: "Implicit IAM Role created for Get Projects function"
+    Value: !GetAtt GetProjectsFunctionRole.Arn
