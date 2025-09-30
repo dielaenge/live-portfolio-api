@@ -1,0 +1,14 @@
+[
+  {
+    "id": "live-portfolio-api",
+    "projectName": "Full-Stack Serverless Portfolio",
+    "description": "A full-stack serverless application featuring a Python backend deployed via AWS SAM and a static frontend deployed via a GitHub Actions CI/CD pipeline.",
+    "technologiesUsed": ["AWS SAM", "CloudFormation", "GitHub Actions", "Lambda", "DynamoDB", "S3", "CloudFront"]
+  },
+  {
+    "id": "ux-ai-startup",
+    "projectName": "AI Model Training UX Platform",
+    "description": "Led the UX design and developed the user flow for a novel AI model training platform, enabling subject-matter experts to conversationally train an AI.",
+    "technologiesUsed": ["UX Design", "User Flow", "Consulting", "Pitch Development"]
+  }
+]
